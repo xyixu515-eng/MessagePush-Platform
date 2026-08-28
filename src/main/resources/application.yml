@@ -1,0 +1,77 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: bitstorm-svr-msgcenter
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB:bitstorm-svr}?serverTimezone=GMT%2B8&characterEncoding=utf8&useSSL=false
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:}
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: 0
+    jedis:
+      pool:
+        max-active: 8 #最大连接数
+  kafka:
+    #以逗号分隔的主机：端口对列表，用于建立与Kafka的连接
+    bootstrap-servers: ${KAFKA_SERVERS:127.0.0.1:9092}
+    producer:
+      # 发生错误后，消息重发的次数。
+      retries: 0
+      #当有多个消息需要被发送到同一个分区时，生产者会把它们放在同一个批次里。该参数指定了一个批次可以使用的内存大小，按照字节数计算。
+      batch-size: 16384
+      # 设置生产者内存缓冲区的大小。
+      buffer-memory: 33554432
+      # 键的序列化方式
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # 值的序列化方式
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: 1
+    consumer:
+      # 键的反序列化方式
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 值的反序列化方式
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  #开启驼峰命名
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+send-msg-conf:
+  mysql-as-mq: true
+  open-cache: true
+  max-retry-count: 5
+  email-host: ${EMAIL_HOST:smtp.qq.com}
+  email-port: ${EMAIL_PORT:587}
+  # 通过环境变量注入，避免敏感信息入库（配置示例见 application-local.yml）
+  email-account: ${EMAIL_ACCOUNT:}
+  email-auth-code: ${EMAIL_AUTH_CODE:}
+  # 短信渠道：阿里云主 + 腾讯云容灾，未配置密钥时自动降级为模拟发送
+  sms:
+    primary: ${SMS_PRIMARY:aliyun}
+    mock-enabled: true
+    failover-threshold: 3
+    aliyun:
+      access-key-id: ${ALIYUN_SMS_ACCESS_KEY_ID:}
+      access-key-secret: ${ALIYUN_SMS_ACCESS_KEY_SECRET:}
+      sign-name: ${ALIYUN_SMS_SIGN_NAME:}
+      template-code: ${ALIYUN_SMS_TEMPLATE_CODE:}
+    tencent:
+      secret-id: ${TENCENT_SMS_SECRET_ID:}
+      secret-key: ${TENCENT_SMS_SECRET_KEY:}
+      sdk-app-id: ${TENCENT_SMS_SDK_APP_ID:}
+      sign-name: ${TENCENT_SMS_SIGN_NAME:}
+      template-id: ${TENCENT_SMS_TEMPLATE_ID:}
+  # 飞书渠道：配置 Webhook 后真实发送，未配置时降级为模拟发送
+  lark:
+    app-id: ${LARK_APP_ID:}
+    app-secret: ${LARK_APP_SECRET:}
+    webhook-url: ${LARK_WEBHOOK_URL:}
+    mock-enabled: true
